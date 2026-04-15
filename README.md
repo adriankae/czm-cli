@@ -10,6 +10,26 @@ It talks to the real API over HTTP, uses API-key auth only, and follows the back
 2. Read the command reference for the full command-by-command manual: [docs/reference.md](docs/reference.md)
 3. Read the implementation notes below if you want the non-obvious behavior explained.
 
+## Agent Skill
+
+This repository now includes an Agent Skills-compatible skill package at [`skills/czm`](skills/czm). It is procedural guidance for agents that need to use `czm` to manage eczema episodes, check what is due, and log treatment applications.
+
+Suggested use:
+
+1. Load [skills/czm/SKILL.md](skills/czm/SKILL.md) for the routing rules.
+2. Read the reference files under [`skills/czm/references`](skills/czm/references) for exact workflows, commands, and error handling.
+3. Use `czm setup` first, then `czm due list`, `czm episode get`, `czm episode heal`, `czm episode relapse`, and `czm application log` as needed.
+
+Layout:
+
+- [`skills/czm/SKILL.md`](skills/czm/SKILL.md)
+- [`skills/czm/references/commands.md`](skills/czm/references/commands.md)
+- [`skills/czm/references/workflows.md`](skills/czm/references/workflows.md)
+- [`skills/czm/references/entity-resolution.md`](skills/czm/references/entity-resolution.md)
+- [`skills/czm/references/error-handling.md`](skills/czm/references/error-handling.md)
+- [`skills/czm/references/examples.md`](skills/czm/references/examples.md)
+- [`skills/czm/references/protocol.md`](skills/czm/references/protocol.md)
+
 ## Commands
 
 - `czm setup`
