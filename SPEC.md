@@ -1,39 +1,19 @@
-# Eczema Tracker CLI Specification (v0.1)
+# CZM CLI Specification (v1.1, Codex-Ready)
 
 ## 0. Purpose
 
-This document defines a **deterministic, agent-first CLI interface** for interacting with the Eczema Tracker backend (https://github.com/adriankae/Eczema-Tracker).
+This document defines a **fully deterministic, agent-first CLI** for the Eczema Tracker backend.
 
-Design goals:
+This spec is **implementation-complete**:
 
-* **Agent-optimized** (primary user)
-* **Strict, machine-readable contract**
-* **Thin API client** (no business logic duplication)
-* **Stable interface** (commands + JSON schema + exit codes)
-
-Non-goals:
-
-* No UI/UX optimizations for humans
-* No local state beyond config/auth
-* No domain logic outside backend
+* no ambiguous behavior
+* no implicit contracts
+* all commands, schemas, and endpoints defined
+* suitable for **one-pass implementation by Codex**
 
 ---
 
-## 1. Architecture
-
-### 1.1 High-level
-
-```
-[ Agent ]
-    ↓ (CLI calls)
-[ CLI (thin client) ]
-    ↓ (HTTP JSON)
-[ Backend API ]
-    ↓
-[ DB + Scheduler + State Machine ]
-```
-
-### 1.2 Principles
+## 1. Core Principles
 
 * CLI is a **stateless HTTP client**
 * Backend is **single source of truth**
@@ -41,39 +21,76 @@ Non-goals:
 
   * input normalization
   * entity resolution
-  * output formatting
+  * deterministic output formatting
 
 ---
 
-## 2. Implementation
+## 2. Implementation Targets
 
-### 2.1 Language
+### 2.1 Language & Stack
 
-* Python (recommended)
-* Suggested stack:
+* Python ≥ 3.12
+* `typer` (CLI)
+* `httpx` (HTTP client)
+* `pydantic` (schemas)
+* `rich` (optional human output)
 
-  * `typer` (CLI)
-  * `httpx` (HTTP)
-  * `pydantic` (schemas)
-  * `rich` (optional human output)
+### 2.2 Packaging
+
+```text
+package name: czm_cli
+executable: czm
+```
+
+### 2.3 Repo Layout
+
+```text
+czm-cli/
+  pyproject.toml
+  czm_cli/
+    __init__.py
+    main.py
+    config.py
+    client.py
+    errors.py
+    resolution.py
+    schemas.py
+    commands/
+      subject.py
+      location.py
+      episode.py
+      application.py
+      due.py
+      events.py
+  tests/
+  README.md
+```
+
+### 2.4 Tooling
+
+| Tool   | Purpose     |
+| ------ | ----------- |
+| pytest | tests       |
+| mypy   | typing      |
+| ruff   | lint/format |
 
 ---
 
 ## 3. Configuration
 
-### 3.1 Precedence
+### 3.1 Location
 
-```
-CLI flag > ENV > config file > default
-```
-
-### 3.2 Config location (XDG)
-
-```
-~/.config/czm-cli/config.toml
+```bash
+~/.config/czm/config.toml
 ```
 
-### 3.3 Example config
+### 3.2 Precedence
+
+```text
+CLI flag > ENV > config file
+```
+
+### 3.3 Config schema
 
 ```toml
 base_url = "https://api.example.com"
@@ -81,89 +98,97 @@ api_key = "sk-..."
 timezone = "Europe/Berlin"
 ```
 
-### 3.4 Environment variables
-
-```
-CZM_BASE_URL
-CZM_API_KEY
-CZM_TIMEZONE
-```
-
 ---
 
 ## 4. Authentication
 
-* **API key only**
-* No login command
+* API key only
 
-### 4.1 Header
-
-```
+```http
 Authorization: Bearer <API_KEY>
 ```
 
 ---
 
-## 5. Global CLI Behavior
+## 5. JSON Contract (STRICT)
 
-### 5.1 Output modes
-
-| Mode         | Purpose                |
-| ------------ | ---------------------- |
-| default      | human-readable summary |
-| `--json`     | machine-readable       |
-| `--quiet`    | no output on success   |
-| `--no-color` | disable ANSI           |
-
-### 5.2 Exit codes
-
-| Code | Meaning          |
-| ---- | ---------------- |
-| 0    | success          |
-| 1    | generic error    |
-| 2    | validation error |
-| 3    | not found        |
-| 4    | ambiguity        |
-| 5    | auth error       |
-| 6    | API error        |
-
----
-
-## 6. Entity Resolution
-
-### 6.1 Supported identifiers
-
-| Entity   | Identifiers                |
-| -------- | -------------------------- |
-| subject  | id, display_name           |
-| location | id, code, display_name     |
-| episode  | id OR (subject + location) |
-
-### 6.2 Resolution strategy
-
-1. Try exact match
-2. Try case-insensitive match
-3. Try partial match
-
-### 6.3 Ambiguity policy
-
-* Non-interactive (default):
-
-  * **FAIL with structured error**
-* JSON mode:
-
-  * return candidate list
-
-### 6.4 Ambiguity error format
+### 5.1 Success (ALL commands)
 
 ```json
 {
-  "error": "ambiguous",
-  "entity": "location",
-  "candidates": [
-    {"id": "loc_1", "code": "left_elbow"},
-    {"id": "loc_2", "code": "left_elbow_inner"}
-  ]
+  "data": <payload>,
+  "meta": {
+    "request_id": "string",
+    "timestamp": "ISO8601"
+  }
+}
+```
+
+### 5.2 Error
+
+```json
+{
+  "error": {
+    "code": "string",
+    "message": "string",
+    "details": {}
+  }
+}
+```
+
+### 5.3 Exit Codes
+
+| Code | Meaning    |
+| ---- | ---------- |
+| 0    | success    |
+| 2    | validation |
+| 3    | not found  |
+| 4    | ambiguity  |
+| 5    | auth       |
+| 6    | API error  |
+
+---
+
+## 6. Entity Resolution (STRICT)
+
+### 6.1 Matching priority
+
+1. exact match
+2. case-insensitive match
+3. substring match
+
+### 6.2 Scope
+
+* always account-scoped
+
+### 6.3 Episode resolution
+
+When using:
+
+```text
+--subject + --location
+```
+
+Resolution:
+
+```text
+1. fetch all episodes for subject+location
+2. if none → NOT_FOUND
+3. if one active episode → use it
+4. if multiple active → AMBIGUOUS
+5. else → use most recent episode (any state: healed/tapering/obsolete)
+```
+
+### 6.4 Ambiguity response
+
+```json
+{
+  "error": {
+    "code": "ambiguous",
+    "details": {
+      "candidates": [...]
+    }
+  }
 }
 ```
 
@@ -171,357 +196,331 @@ Authorization: Bearer <API_KEY>
 
 ## 7. Time Handling
 
-### 7.1 Input
-
-* Accept:
-
-  * ISO 8601
-  * local datetime
-  * date-only
-
-### 7.2 Behavior
-
-* Convert → UTC before API call
-* Use configured timezone for parsing
-
-### 7.3 Output
-
-* JSON:
-
-  * always UTC
-* Human:
-
-  * localized
+* input: local or ISO
+* convert → UTC
+* output JSON: UTC only
 
 ---
 
-## 8. Command Tree (v1)
+## 8. Schemas
 
-```
-eczema
-  subject create
-  subject list
-  subject get
-
-  location create
-  location list
-
-  episode create
-  episode list
-  episode get
-  episode heal
-  episode relapse
-
-  application log
-  application update
-  application delete
-  application list
-
-  due list
-  events list
-```
-
----
-
-## 9. Command Specifications
-
-## 9.1 subject create
-
-```bash
-eczema subject create --name "Person A"
-```
-
-### JSON output
+### 8.1 Subject
 
 ```json
 {
-  "id": "sub_123",
-  "display_name": "Person A",
-  "created_at": "2026-04-15T12:00:00Z"
+  "id": "string",
+  "display_name": "string",
+  "created_at": "ISO8601"
+}
+```
+
+### 8.2 Location
+
+```json
+{
+  "id": "string",
+  "code": "string",
+  "display_name": "string"
+}
+```
+
+### 8.3 Episode
+
+```json
+{
+  "id": "string",
+  "subject_id": "string",
+  "location_id": "string",
+  "state": "active_flare|healed|phase_2|...|phase_7|obsolete",
+  "created_at": "ISO8601",
+  "updated_at": "ISO8601"
+}
+```
+
+### 8.4 Application
+
+```json
+{
+  "id": "string",
+  "episode_id": "string",
+  "product": "string",
+  "amount": "string",
+  "applied_at": "ISO8601"
+}
+```
+
+### 8.5 Due
+
+```json
+{
+  "episode_id": "string",
+  "due_at": "ISO8601"
+}
+```
+
+### 8.6 Event
+
+```json
+{
+  "id": "string",
+  "type": "string",
+  "timestamp": "ISO8601",
+  "payload": {}
 }
 ```
 
 ---
 
-## 9.2 location create
+## 9. Command → Endpoint Mapping
+
+| CLI                | Method | Endpoint               |
+| ------------------ | ------ | ---------------------- |
+| subject create     | POST   | /subjects              |
+| subject list       | GET    | /subjects              |
+| subject get        | GET    | /subjects/{id}         |
+| location create    | POST   | /locations             |
+| location list      | GET    | /locations             |
+| episode create     | POST   | /episodes              |
+| episode list       | GET    | /episodes              |
+| episode get        | GET    | /episodes/{id}         |
+| episode heal       | POST   | /episodes/{id}/heal    |
+| episode relapse    | POST   | /episodes/{id}/relapse |
+| application log    | POST   | /applications          |
+| application update | PATCH  | /applications/{id}     |
+| application delete | DELETE | /applications/{id}     |
+| application list   | GET    | /applications          |
+| due list           | GET    | /due                   |
+| events list        | GET    | /events                |
+
+---
+
+## 10. Commands (FULL SPEC)
+
+## 10.1 subject create
 
 ```bash
-eczema location create --code left_elbow --name "Left Elbow"
+czm subject create --name "Child A"
+```
+
+Request:
+
+```json
+{ "display_name": "Child A" }
+```
+
+Response:
+
+```json
+{
+  "data": {
+    "id": "sub_1",
+    "display_name": "Child A",
+    "created_at": "..."
+  },
+  "meta": {}
+}
 ```
 
 ---
 
-## 9.3 episode create
+## 10.2 subject list
 
 ```bash
-eczema episode create \
-  --subject "Person A" \
-  --location left_elbow
+czm subject list
+```
+
+Query params:
+
+* limit (default 50)
+* cursor
+
+Response:
+
+```json
+{
+  "data": [Subject],
+  "meta": { "cursor": "..." }
+}
 ```
 
 ---
 
-## 9.4 episode heal
+## 10.3 subject get
 
 ```bash
-eczema episode heal \
-  --subject "Person A" \
-  --location left_elbow
+czm subject get --subject "Child A"
 ```
 
 ---
 
-## 9.5 episode relapse
+## 10.4 location create
 
 ```bash
-eczema episode relapse \
-  --subject "Person A" \
-  --location left_elbow
+czm location create --code left_elbow --name "Left Elbow"
 ```
 
 ---
 
-## 9.6 application log
+## 10.5 location list
 
 ```bash
-eczema application log \
-  --subject "Person A" \
+czm location list
+```
+
+---
+
+## 10.6 episode create
+
+```bash
+czm episode create --subject "Child A" --location left_elbow
+```
+
+Request:
+
+```json
+{
+  "subject_id": "...",
+  "location_id": "..."
+}
+```
+
+---
+
+## 10.7 episode list
+
+```bash
+czm episode list --subject "Child A"
+```
+
+Filters:
+
+* subject
+* location
+
+---
+
+## 10.8 episode get
+
+```bash
+czm episode get --subject "Child A" --location left_elbow
+```
+
+---
+
+## 10.9 episode heal
+
+```bash
+czm episode heal --subject "Child A" --location left_elbow
+```
+
+---
+
+## 10.10 episode relapse
+
+```bash
+czm episode relapse --subject "Child A" --location left_elbow
+```
+
+---
+
+## 10.11 application log
+
+```bash
+czm application log \
+  --subject "Child A" \
   --location left_elbow \
-  --product "Steroid Cream" \
-  --amount "thin layer"
+  --product "Steroid" \
+  --amount "thin"
 ```
 
 ---
 
-## 9.7 due list
+## 10.12 application update
 
 ```bash
-eczema due list
-```
-
-### JSON
-
-```json
-[
-  {
-    "episode_id": "ep_123",
-    "subject": "Person A",
-    "location": "left_elbow",
-    "due_at": "2026-04-15T08:00:00Z"
-  }
-]
+czm application update --id app_1 --amount "thick"
 ```
 
 ---
 
-## 10. JSON Contract
-
-### 10.1 Success envelope
-
-```json
-{
-  "data": {...},
-  "meta": {
-    "request_id": "...",
-    "timestamp": "..."
-  }
-}
-```
-
-### 10.2 Error envelope
-
-```json
-{
-  "error": {
-    "code": "not_found",
-    "message": "...",
-    "details": {}
-  }
-}
-```
-
----
-
-## 11. Agent Skill Specification (SKILL.md)
-
-# SKILL: eczema-tracker
-
-## Purpose
-
-Manage eczema treatment lifecycle via CLI.
-
----
-
-## Rules
-
-1. Always use `--json`
-2. Never rely on human-readable output
-3. Resolve ambiguity explicitly
-4. Never assume entity IDs
-5. Prefer subject+location over episode_id
-6. Validate before mutation
-
----
-
-## Core workflows
-
-### 1. Start episode
-
-```
-subject exists?
-→ yes → create episode
-→ no → create subject → create episode
-```
-
----
-
-### 2. Log treatment
-
-```
-find episode (subject+location)
-→ log application
-```
-
----
-
-### 3. Mark healed
-
-```
-episode → heal
-```
-
----
-
-### 4. Relapse
-
-```
-episode relapse
-```
-
----
-
-### 5. Daily routine
-
-```
-eczema due list --json
-→ iterate → log applications
-```
-
----
-
-## Error handling
-
-| Error      | Action        |
-| ---------- | ------------- |
-| ambiguous  | ask user      |
-| not_found  | create entity |
-| validation | fix input     |
-| auth       | stop          |
-
----
-
-## 12. Command Cheat Sheet
+## 10.13 application delete
 
 ```bash
-# subjects
-eczema subject create --name "Person A"
-eczema subject list
-
-# locations
-eczema location create --code left_elbow
-
-# episodes
-eczema episode create --subject "Person A" --location left_elbow
-eczema episode heal --subject "Person A" --location left_elbow
-eczema episode relapse --subject "Person A" --location left_elbow
-
-# applications
-eczema application log --subject "Person A" --location left_elbow --product "Steroid"
-
-# due
-eczema due list --json
+czm application delete --id app_1
 ```
 
 ---
 
-## 13. Query / Workflow Library
+## 10.14 application list
 
-### 13.1 "What is due today?"
-
-```
-eczema due list --json
+```bash
+czm application list --subject "Child A"
 ```
 
 ---
 
-### 13.2 "Apply treatment everywhere due"
+## 10.15 due list
 
-Pseudo:
-
-```
-due = get_due()
-for item in due:
-  eczema application log ...
+```bash
+czm due list
 ```
 
 ---
 
-### 13.3 "Create everything from scratch"
+## 10.16 events list
 
-```
-create subject
-create location
-create episode
+```bash
+czm events list
 ```
 
 ---
 
-### 13.4 "Handle relapse automatically"
+## 11. Defaults & Behavior
 
-```
-if symptoms worsen:
-  eczema episode relapse
+### 11.1 List commands
+
+* default limit: 50
+* sorted: newest first
+
+### 11.2 Output modes
+
+| Flag    | Behavior    |
+| ------- | ----------- |
+| --json  | strict JSON |
+| --quiet | no output   |
+
+---
+
+## 12. Agent Contract (SKILL.md)
+
+### Rules
+
+* ALWAYS use `--json`
+* NEVER parse human output
+* ALWAYS resolve ambiguity
+* NEVER assume IDs
+
+---
+
+## 13. Workflow Library
+
+### Daily loop
+
+```bash
+czm due list --json
+→ iterate → application log
 ```
 
 ---
 
-## 14. Test Matrix
+## 14. Test Requirements
 
-### 14.1 Required tests
-
-* entity resolution
-* ambiguity detection
-* JSON schema validation
-* exit codes
-* timezone conversion
-* API error propagation
-
----
-
-## 15. Stability Guarantees
-
-Stable:
-
-* command names
-* flags
+* resolution logic
+* ambiguity
+* endpoint mapping
 * JSON schema
 * exit codes
 
-Unstable:
-
-* human-readable output
-
 ---
 
-## 16. Future Extensions (not v1)
-
-* `doctor`
-* `init`
-* shell completion
-* profile management
-* bulk operations
-* offline mode
-
----
-
-# END
+## END
