@@ -20,6 +20,7 @@ from .errors import (
     EXIT_USAGE,
 )
 from .commands.application import register as register_application_commands
+from .commands.setup import register as register_setup_commands
 from .commands.due import register as register_due_commands
 from .commands.events import register as register_events_commands
 from .commands.episode import register as register_episode_commands
@@ -39,6 +40,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     parser = argparse.ArgumentParser(prog="czm", description="czm CLI client", parents=[parent])
     subparsers = parser.add_subparsers(dest="command", required=True)
+    register_setup_commands(subparsers, parent)
     register_subject_commands(subparsers, parent)
     register_location_commands(subparsers, parent)
     register_episode_commands(subparsers, parent)
@@ -72,6 +74,8 @@ def run(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
     try:
+        if getattr(args, "command", None) == "setup":
+            return args.handler(None, args)
         config = resolve_runtime_config(
             base_url=getattr(args, "base_url", None),
             api_key=getattr(args, "api_key", None),

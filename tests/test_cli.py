@@ -83,3 +83,24 @@ def test_cli_conflict_exit_code_json(monkeypatch, capsys):
     exit_code = cli_module.main(["--json", "--base-url", "http://example", "--api-key", "k", "subject", "list"])
     assert exit_code == EXIT_CONFLICT
     assert json.loads(capsys.readouterr().out) == {"error": {"code": "conflict", "message": "conflict happened"}}
+
+
+def test_cli_setup_command(monkeypatch, tmp_path, capsys):
+    from czm_cli.commands import setup as setup_module
+
+    config_path = tmp_path / "config.toml"
+
+    def fake_bootstrap_config(**kwargs):
+        config_path.write_text("base_url = \"http://localhost:8000\"\napi_key = \"secret\"\ntimezone = \"UTC\"\n", encoding="utf-8")
+        assert kwargs["base_url"] == "http://localhost:8000"
+        assert kwargs["username"] == "admin"
+        assert kwargs["password"] == "admin"
+        assert kwargs["api_key_name"] == "czm-cli"
+        assert kwargs["config_path"] == config_path
+        return type("R", (), {"config_path": config_path, "base_url": kwargs["base_url"], "username": kwargs["username"], "api_key_name": kwargs["api_key_name"], "timezone": kwargs["timezone"]})()
+
+    monkeypatch.setattr(setup_module, "bootstrap_config", fake_bootstrap_config)
+    exit_code = cli_module.main(["setup", "--base-url", "http://localhost:8000", "--config", str(config_path)])
+    assert exit_code == 0
+    assert "Wrote config to" in capsys.readouterr().out
+    assert config_path.exists()

@@ -8,7 +8,7 @@ from urllib.parse import urlparse
 import os
 import tomllib
 
-from .errors import ConfigError
+from .errors import ConfigError, CzmError, EXIT_CONFLICT
 
 
 def xdg_config_path() -> Path:
@@ -25,6 +25,27 @@ class RuntimeConfig:
 
     def normalized_base_url(self) -> str:
         return normalize_base_url(self.base_url)
+
+
+def render_runtime_config(config: RuntimeConfig) -> str:
+    return (
+        f'base_url = "{config.normalized_base_url()}"\n'
+        f'api_key = "{config.api_key}"\n'
+        f'timezone = "{config.timezone}"\n'
+    )
+
+
+def write_runtime_config(path: Path, config: RuntimeConfig, *, overwrite: bool = False) -> None:
+    if path.exists() and not overwrite:
+        raise CzmError(f"config file already exists: {path}", exit_code=EXIT_CONFLICT)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp_path = path.with_name(path.name + ".tmp")
+    tmp_path.write_text(render_runtime_config(config), encoding="utf-8")
+    tmp_path.replace(path)
+    try:
+        path.chmod(0o600)
+    except OSError:
+        pass
 
 
 def normalize_base_url(value: str) -> str:
@@ -67,6 +88,6 @@ def resolve_runtime_config(*, base_url: str | None, api_key: str | None, timezon
         raise ConfigError(
             "missing required configuration: "
             + ", ".join(sorted(missing))
-            + f"; set CLI flags, CZM_* env vars, or {config_path or xdg_config_path()}"
+            + f"; run `czm setup` or set CLI flags, CZM_* env vars, or {config_path or xdg_config_path()}"
         )
     return RuntimeConfig(base_url=normalize_base_url(str(resolved["base_url"])), api_key=str(resolved["api_key"]), timezone=str(resolved["timezone"]))

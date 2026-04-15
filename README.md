@@ -6,13 +6,12 @@ It talks to the real API over HTTP, uses API-key auth only, and follows the back
 
 ## Quick Start
 
-1. Install `czm`: [docs/install.md](docs/install.md)
-2. Follow the full getting-started tutorial: [docs/getting-started.md](docs/getting-started.md)
-3. Review configuration details: [docs/setup.md](docs/setup.md)
-4. See the full command walkthrough: [docs/usage.md](docs/usage.md)
+1. Follow the full getting-started tutorial: [docs/getting-started.md](docs/getting-started.md)
+2. Read the implementation notes below if you want the non-obvious behavior explained.
 
 ## Commands
 
+- `czm setup`
 - `czm subject create`
 - `czm subject list`
 - `czm subject get`

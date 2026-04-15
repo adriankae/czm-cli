@@ -1,10 +1,10 @@
 # Getting Started
 
-This guide takes you from a fresh install to your first working `czm` commands.
+This is the only onboarding guide you need. It covers install, backend startup, bootstrap, config creation, and the first commands that actually work.
 
-## 1. Install the CLI
+## 1. Install `czm`
 
-If you have not installed the package yet, do that first:
+Create a virtual environment and install the CLI:
 
 ```bash
 python3 -m venv .venv
@@ -12,139 +12,112 @@ source .venv/bin/activate
 PIP_INDEX_URL=https://pypi.org/simple python3 -m pip install -e .
 ```
 
-If the `czm` command is not found, add your virtual environment or user bin directory to `PATH`. On macOS user-site installs, that is often something like `~/Library/Python/3.13/bin`.
+If `czm` is not on your `PATH`, use the binary from the virtual environment or add the user bin directory shown by `pip` to `PATH`.
 
 ## 2. Start the backend
 
-Open a second terminal, change into the backend repository, and start the Docker stack:
+Open the backend repository and start Docker:
 
 ```bash
 cd /path/to/Eczema-Tracker
 docker compose up -d --build
 ```
 
-Wait until the API is ready:
+Confirm the API is alive:
 
 ```bash
 curl -sS http://localhost:8000/health
 ```
 
-You should see:
+Expected response:
 
 ```json
 {"status":"ok"}
 ```
 
-## 3. Log in to the backend
+## 3. Create the config automatically
 
-The backend seeds a default account on first startup:
+This is the part that was missing before. Instead of manually copying a bearer token and then manually creating an API key, use `czm setup`.
+
+The backend seeds these credentials on first start:
 
 - username: `admin`
 - password: `admin`
 
-Use it to get a bearer token:
+Run:
 
 ```bash
-ACCESS_TOKEN=$(
-  curl -sS -X POST http://localhost:8000/auth/login \
-    -H 'Content-Type: application/json' \
-    -d '{"username":"admin","password":"admin"}' \
-  | python3 -c 'import json,sys; print(json.load(sys.stdin)["access_token"])'
-)
+czm setup \
+  --base-url http://localhost:8000 \
+  --username admin \
+  --password admin \
+  --api-key-name czm-cli \
+  --timezone Europe/Berlin
 ```
 
-If you prefer, you can paste the JSON response into a shell variable manually instead.
+What this does:
 
-## 4. Create an API key
+1. logs into the backend with the username/password
+2. creates an API key through the backend
+3. writes `~/.config/czm/config.toml` or `$XDG_CONFIG_HOME/czm/config.toml`
 
-`czm` uses API-key auth, not the bearer token directly.
-
-Create a dedicated key for the CLI:
-
-```bash
-curl -sS -X POST http://localhost:8000/api-keys \
-  -H "Authorization: Bearer $ACCESS_TOKEN" \
-  -H 'Content-Type: application/json' \
-  -d '{"name":"czm-cli"}'
-```
-
-The response includes a `plaintext_key`. That exact value is what you put into `czm` config.
-
-Example response shape:
-
-```json
-{
-  "api_key": {
-    "id": 1,
-    "account_id": 1,
-    "name": "czm-cli",
-    "is_active": true,
-    "created_at": "2026-04-15T14:02:57.724857Z",
-    "last_used_at": null
-  },
-  "plaintext_key": "paste-this-value-into-czm"
-}
-```
-
-## 5. Configure `czm`
-
-Create the config file at `~/.config/czm/config.toml` or `$XDG_CONFIG_HOME/czm/config.toml`:
+Example config that gets written:
 
 ```toml
 base_url = "http://localhost:8000"
-api_key = "paste-this-value-into-czm"
+api_key = "plaintext-api-key-from-the-backend"
 timezone = "Europe/Berlin"
 ```
 
-If you do not want a config file yet, you can pass `--base-url` and `--api-key` on every command.
+If your backend is running in another timezone, pass that timezone here instead. The CLI uses it to interpret naive local timestamps.
 
-## 6. Run your first command
+## 4. Run your first command
 
-Start with the simplest read-only command:
+Now the CLI should work without extra flags:
 
 ```bash
 czm subject list
 ```
 
-If the backend only has the default `admin` account and no subjects yet, you should see:
+If nothing exists yet, the output should be:
 
 ```text
 No subjects.
 ```
 
-## 7. Create your first subject and location
+## 5. Create your first subject and location
 
 ```bash
 czm subject create --display-name "Child A"
 czm location create --code left_elbow --display-name "Left elbow"
 ```
 
-You can list them to confirm:
+List them to confirm:
 
 ```bash
 czm subject list
 czm location list
 ```
 
-## 8. Create an episode
+## 6. Create an episode
 
-The easiest first episode uses the exact names you just created:
+Use the exact names you just created:
 
 ```bash
 czm episode create --subject "Child A" --location "Left elbow"
 ```
 
-If you later create more subjects or locations with similar names, the CLI will resolve them in this order:
+The CLI resolves text references in this order:
 
 1. exact match
 2. case-insensitive match
 3. substring match
 
-If more than one item matches at the same step, the CLI stops with an ambiguity error instead of guessing.
+If multiple items match at the same step, the CLI stops and tells you the reference is ambiguous instead of guessing.
 
-## 9. Heal, log, and inspect
+## 7. Heal, log, and inspect
 
-Once you have an episode, try the rest of the core workflow:
+Once you have an episode, try the rest of the workflow:
 
 ```bash
 czm episode heal 1
@@ -154,12 +127,31 @@ czm due list
 czm events list --episode 1
 ```
 
-If you want machine-readable output, add `--json`.
+Add `--json` if you want machine-readable output instead of the human format.
 
-## 10. What to do if a command fails
+## 8. If something fails
 
-- `missing required configuration`: set `base_url` and `api_key`
-- `unauthorized`: check that you used the plaintext API key, not the bearer token
+- `missing required configuration`: run `czm setup`
+- `unauthorized`: check that the API key came from `czm setup`, not the bearer token from login
 - `reference '...' is ambiguous`: use a fuller name or the numeric ID
 - `transport_error`: confirm the backend is still running on `http://localhost:8000`
 
+## 9. What the setup command looks like under the hood
+
+If you want to understand the manual backend flow, `czm setup` is replacing this sequence:
+
+```bash
+ACCESS_TOKEN=$(
+  curl -sS -X POST http://localhost:8000/auth/login \
+    -H 'Content-Type: application/json' \
+    -d '{"username":"admin","password":"admin"}' \
+  | python3 -c 'import json,sys; print(json.load(sys.stdin)["access_token"])'
+)
+
+curl -sS -X POST http://localhost:8000/api-keys \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
+  -H 'Content-Type: application/json' \
+  -d '{"name":"czm-cli"}'
+```
+
+You no longer need to do that by hand for normal use. It is there only to show what the bootstrap step is doing for you.
