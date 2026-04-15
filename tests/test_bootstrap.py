@@ -20,7 +20,7 @@ def test_bootstrap_config_writes_file(tmp_path: Path):
 
     config_path = tmp_path / "config.toml"
     result = bootstrap_config(
-        base_url="http://localhost:8000",
+        base_url="http://localhost:28173",
         username="admin",
         password="admin",
         api_key_name="czm-cli",
@@ -30,7 +30,7 @@ def test_bootstrap_config_writes_file(tmp_path: Path):
     )
     assert result.config_path == config_path
     assert config_path.read_text(encoding="utf-8") == (
-        'base_url = "http://localhost:8000"\n'
+        'base_url = "http://localhost:28173"\n'
         'api_key = "secret-key"\n'
         'timezone = "Europe/Berlin"\n'
     )

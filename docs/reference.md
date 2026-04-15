@@ -14,11 +14,12 @@ If you are just getting started, run `czm setup` first and then read [Getting St
 
 Create the local config file automatically by logging into the backend, creating an API key, and writing `config.toml`.
 
+By default this command uses `http://localhost:28173`. Pass `--base-url` if your backend is running somewhere else.
+
 Example:
 
 ```bash
 czm setup \
-  --base-url http://localhost:8000 \
   --username admin \
   --password admin \
   --api-key-name czm-cli \
@@ -444,4 +445,3 @@ Events:
 - If you see `missing required configuration`, run `czm setup`
 - If you see `unauthorized`, make sure the config contains the plaintext API key
 - If a name is ambiguous, use a more specific reference or a numeric ID
-

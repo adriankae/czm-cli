@@ -4,13 +4,13 @@ import argparse
 import json
 from pathlib import Path
 
-from ..bootstrap import BootstrapResult, bootstrap_config, detect_local_timezone
-from ..config import RuntimeConfig, xdg_config_path
-from ..errors import CzmError
+from ..bootstrap import DEFAULT_BASE_URL, BootstrapResult, bootstrap_config, detect_local_timezone
+from ..config import xdg_config_path
 
 
 def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser], parent: argparse.ArgumentParser) -> None:
     parser = subparsers.add_parser("setup", parents=[parent], help="Create config.toml from backend login")
+    parser.set_defaults(base_url=DEFAULT_BASE_URL)
     parser.add_argument("--username", default="admin")
     parser.add_argument("--password", default="admin")
     parser.add_argument("--api-key-name", default="czm-cli")
@@ -46,8 +46,6 @@ def _emit(result: BootstrapResult, *, json_output: bool) -> None:
 
 
 def handle_setup(ctx, args) -> int:
-    if not getattr(args, "base_url", None):
-        raise CzmError("--base-url is required for czm setup", exit_code=2)
     result = bootstrap_config(
         base_url=args.base_url,
         username=args.username,
@@ -59,4 +57,3 @@ def handle_setup(ctx, args) -> int:
     )
     _emit(result, json_output=bool(getattr(args, "json", False)))
     return 0
-

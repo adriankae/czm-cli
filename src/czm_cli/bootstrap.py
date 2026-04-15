@@ -10,6 +10,8 @@ import httpx
 from .config import RuntimeConfig, normalize_base_url, write_runtime_config
 from .errors import CzmError, EXIT_CONFLICT, EXIT_USAGE
 
+DEFAULT_BASE_URL = "http://localhost:28173"
+
 
 @dataclass(slots=True)
 class BootstrapResult:

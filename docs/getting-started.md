@@ -26,7 +26,7 @@ docker compose up -d --build
 Confirm the API is alive:
 
 ```bash
-curl -sS http://localhost:8000/health
+curl -sS http://localhost:28173/health
 ```
 
 Expected response:
@@ -34,6 +34,8 @@ Expected response:
 ```json
 {"status":"ok"}
 ```
+
+This tutorial assumes the backend is on `http://localhost:28173`. If your backend is running on a different port, pass `--base-url` to `czm setup`.
 
 ## 3. Create the config automatically
 
@@ -48,7 +50,6 @@ Run:
 
 ```bash
 czm setup \
-  --base-url http://localhost:8000 \
   --username admin \
   --password admin \
   --api-key-name czm-cli \
@@ -64,7 +65,7 @@ What this does:
 Example config that gets written:
 
 ```toml
-base_url = "http://localhost:8000"
+base_url = "http://localhost:28173"
 api_key = "plaintext-api-key-from-the-backend"
 timezone = "Europe/Berlin"
 ```
@@ -134,7 +135,7 @@ Add `--json` if you want machine-readable output instead of the human format.
 - `missing required configuration`: run `czm setup`
 - `unauthorized`: check that the API key came from `czm setup`, not the bearer token from login
 - `reference '...' is ambiguous`: use a fuller name or the numeric ID
-- `transport_error`: confirm the backend is still running on `http://localhost:8000`
+- `transport_error`: confirm the backend is still running on `http://localhost:28173`
 
 ## 9. Read the command reference
 
@@ -148,13 +149,13 @@ If you want to understand the manual backend flow, `czm setup` is replacing this
 
 ```bash
 ACCESS_TOKEN=$(
-  curl -sS -X POST http://localhost:8000/auth/login \
+  curl -sS -X POST http://localhost:28173/auth/login \
     -H 'Content-Type: application/json' \
     -d '{"username":"admin","password":"admin"}' \
   | python3 -c 'import json,sys; print(json.load(sys.stdin)["access_token"])'
 )
 
-curl -sS -X POST http://localhost:8000/api-keys \
+curl -sS -X POST http://localhost:28173/api-keys \
   -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H 'Content-Type: application/json' \
   -d '{"name":"czm-cli"}'

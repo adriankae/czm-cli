@@ -96,8 +96,8 @@ def test_cli_setup_command(monkeypatch, tmp_path, capsys):
     config_path = tmp_path / "config.toml"
 
     def fake_bootstrap_config(**kwargs):
-        config_path.write_text("base_url = \"http://localhost:8000\"\napi_key = \"secret\"\ntimezone = \"UTC\"\n", encoding="utf-8")
-        assert kwargs["base_url"] == "http://localhost:8000"
+        config_path.write_text("base_url = \"http://localhost:28173\"\napi_key = \"secret\"\ntimezone = \"UTC\"\n", encoding="utf-8")
+        assert kwargs["base_url"] == "http://localhost:28173"
         assert kwargs["username"] == "admin"
         assert kwargs["password"] == "admin"
         assert kwargs["api_key_name"] == "czm-cli"
@@ -105,7 +105,7 @@ def test_cli_setup_command(monkeypatch, tmp_path, capsys):
         return type("R", (), {"config_path": config_path, "base_url": kwargs["base_url"], "username": kwargs["username"], "api_key_name": kwargs["api_key_name"], "timezone": kwargs["timezone"]})()
 
     monkeypatch.setattr(setup_module, "bootstrap_config", fake_bootstrap_config)
-    exit_code = cli_module.main(["setup", "--base-url", "http://localhost:8000", "--config", str(config_path)])
+    exit_code = cli_module.main(["setup", "--config", str(config_path)])
     assert exit_code == 0
     assert "Wrote config to" in capsys.readouterr().out
     assert config_path.exists()
