@@ -34,6 +34,18 @@ What the user has to do:
 - If OpenClaw runs as a different Unix user, that user must also be able to read the skill files.
 - Once the runtime can see the skill, requests about eczema tracking are routed to this skill automatically.
 
+Installer helper:
+
+If you want a one-command install from this repository clone into a skill directory you control, run:
+
+```bash
+python3 scripts/install_skill.py --target-dir /path/to/openclaw/skills
+```
+
+That command copies `skills/czm` into `/path/to/openclaw/skills/czm`. If you prefer a symlink instead of a copy, add `--mode symlink`.
+
+More detail: [docs/skill-install.md](docs/skill-install.md)
+
 Layout:
 
 - [`skills/czm/SKILL.md`](skills/czm/SKILL.md)
