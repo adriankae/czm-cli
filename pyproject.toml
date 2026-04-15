@@ -6,7 +6,11 @@ build-backend = "setuptools.build_meta"
 name = "czm-cli"
 version = "1.0.0"
 description = "Production CLI client for the eczema treatment tracker backend"
-requires-python = ">=3.12"
+requires-python = ">=3.11"
+classifiers = [
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+]
 dependencies = [
   "httpx>=0.27,<1.0",
   "pydantic>=2.7,<3.0",

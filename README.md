@@ -3,6 +3,7 @@
 `czm` is a production CLI client for the eczema treatment tracker backend.
 
 It talks to the real API over HTTP, uses API-key auth only, and follows the backend contract for subjects, locations, episodes, applications, due items, and events.
+It supports Python 3.11 and Python 3.12.
 
 ## Quick Start
 

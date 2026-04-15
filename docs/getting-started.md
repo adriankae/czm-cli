@@ -2,6 +2,8 @@
 
 This is the only onboarding guide you need. It covers install, backend startup, bootstrap, config creation, and the first commands that actually work.
 
+Supported Python versions: 3.11 and 3.12.
+
 ## 1. Install `czm`
 
 Create a virtual environment and install the CLI:
