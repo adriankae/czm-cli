@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 from czm_cli.errors import ConfigError
-from czm_cli.config import resolve_runtime_config
+from czm_cli.config import DEFAULT_BASE_URL, resolve_runtime_config
 
 
 def test_config_precedence(monkeypatch, tmp_path: Path):
@@ -29,6 +29,16 @@ def test_config_uses_env_then_file(monkeypatch, tmp_path: Path):
     assert resolved.base_url == "http://env.example"
     assert resolved.api_key == "env-key"
     assert resolved.timezone == "UTC"
+
+
+def test_config_defaults_base_url_when_missing(monkeypatch, tmp_path: Path):
+    config = tmp_path / "config.toml"
+    config.write_text('api_key = "file-key"\n', encoding="utf-8")
+    monkeypatch.delenv("CZM_BASE_URL", raising=False)
+    monkeypatch.delenv("CZM_API_KEY", raising=False)
+    resolved = resolve_runtime_config(base_url=None, api_key=None, timezone=None, config_path=config)
+    assert resolved.base_url == DEFAULT_BASE_URL
+    assert resolved.api_key == "file-key"
 
 
 def test_config_missing(monkeypatch, tmp_path: Path):

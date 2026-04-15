@@ -109,3 +109,57 @@ def test_cli_setup_command(monkeypatch, tmp_path, capsys):
     assert exit_code == 0
     assert "Wrote config to" in capsys.readouterr().out
     assert config_path.exists()
+
+
+def test_cli_setup_command_custom_base_url(monkeypatch, tmp_path):
+    from czm_cli.commands import setup as setup_module
+
+    config_path = tmp_path / "config.toml"
+    custom_base_url = "http://backend-host:28173"
+
+    def fake_bootstrap_config(**kwargs):
+        assert kwargs["base_url"] == custom_base_url
+        assert kwargs["config_path"] == config_path
+        return type(
+            "R",
+            (),
+            {
+                "config_path": config_path,
+                "base_url": kwargs["base_url"],
+                "username": kwargs["username"],
+                "api_key_name": kwargs["api_key_name"],
+                "timezone": kwargs["timezone"],
+            },
+        )()
+
+    monkeypatch.setattr(setup_module, "bootstrap_config", fake_bootstrap_config)
+    exit_code = cli_module.main(["setup", "--config", str(config_path), "--base-url", custom_base_url])
+    assert exit_code == 0
+
+
+def test_cli_uses_configured_base_url(monkeypatch, tmp_path):
+    config = tmp_path / "config.toml"
+    config.write_text(
+        'base_url = "http://backend-host:28173"\napi_key = "secret"\ntimezone = "UTC"\n',
+        encoding="utf-8",
+    )
+    seen = {}
+
+    class RecordingClient(FakeClient):
+        def __init__(self, base_url, api_key, **kwargs):
+            seen["base_url"] = base_url
+            seen["api_key"] = api_key
+            super().__init__({("GET", "/subjects"): {"subjects": []}})
+
+    monkeypatch.setattr(cli_module, "CzmClient", RecordingClient)
+    exit_code = cli_module.main(["--config", str(config), "subject", "list"])
+    assert exit_code == 0
+    assert seen["base_url"] == "http://backend-host:28173"
+    assert seen["api_key"] == "secret"
+
+
+def test_cli_setup_rejects_invalid_base_url(monkeypatch, tmp_path, capsys):
+    config_path = tmp_path / "config.toml"
+    exit_code = cli_module.main(["setup", "--config", str(config_path), "--base-url", "not-a-url"])
+    assert exit_code == EXIT_USAGE
+    assert "base_url must be an http or https URL" in capsys.readouterr().err

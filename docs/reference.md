@@ -14,7 +14,7 @@ If you are just getting started, run `czm setup` first and then read [Getting St
 
 Create the local config file automatically by logging into the backend, creating an API key, and writing `config.toml`.
 
-By default this command uses `http://localhost:28173`. Pass `--base-url` if your backend is running somewhere else.
+By default this command uses `http://localhost:28173`. Pass `--base-url` if your backend is running somewhere else, such as a Docker service name or a non-default port.
 
 Example:
 
@@ -23,7 +23,8 @@ czm setup \
   --username admin \
   --password admin \
   --api-key-name czm-cli \
-  --timezone Europe/Berlin
+  --timezone Europe/Berlin \
+  --base-url http://backend-host:28173
 ```
 
 Output:

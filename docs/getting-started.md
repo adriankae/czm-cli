@@ -37,7 +37,18 @@ Expected response:
 {"status":"ok"}
 ```
 
-This tutorial assumes the backend is on `http://localhost:28173`. If your backend is running on a different port, pass `--base-url` to `czm setup`.
+This tutorial assumes the backend is on `http://localhost:28173`. If your backend is running on a different host or port, pass `--base-url` to `czm setup`.
+
+For example, if the backend is reachable at a Docker service name or another host:
+
+```bash
+czm setup \
+  --username admin \
+  --password admin \
+  --api-key-name czm-cli \
+  --timezone Europe/Berlin \
+  --base-url http://backend-host:28173
+```
 
 ## 3. Create the config automatically
 

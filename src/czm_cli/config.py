@@ -10,6 +10,8 @@ import tomllib
 
 from .errors import ConfigError, CzmError, EXIT_CONFLICT
 
+DEFAULT_BASE_URL = "http://localhost:28173"
+
 
 def xdg_config_path() -> Path:
     config_home = os.environ.get("XDG_CONFIG_HOME")
@@ -79,11 +81,11 @@ def _pick_value(flag_value: str | None, env_name: str, file_data: dict[str, Any]
 def resolve_runtime_config(*, base_url: str | None, api_key: str | None, timezone: str | None, config_path: Path | None) -> RuntimeConfig:
     file_data = load_config_file(config_path or xdg_config_path())
     resolved = {
-        "base_url": _pick_value(base_url, "CZM_BASE_URL", file_data, "base_url"),
+        "base_url": _pick_value(base_url, "CZM_BASE_URL", file_data, "base_url") or DEFAULT_BASE_URL,
         "api_key": _pick_value(api_key, "CZM_API_KEY", file_data, "api_key"),
         "timezone": _pick_value(timezone, "CZM_TIMEZONE", file_data, "timezone") or "UTC",
     }
-    missing = [key for key, value in resolved.items() if key in {"base_url", "api_key"} and not value]
+    missing = [key for key, value in resolved.items() if key in {"api_key"} and not value]
     if missing:
         raise ConfigError(
             "missing required configuration: "

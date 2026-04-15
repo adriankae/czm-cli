@@ -10,7 +10,6 @@ from ..config import xdg_config_path
 
 def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser], parent: argparse.ArgumentParser) -> None:
     parser = subparsers.add_parser("setup", parents=[parent], help="Create config.toml from backend login")
-    parser.set_defaults(base_url=DEFAULT_BASE_URL)
     parser.add_argument("--username", default="admin")
     parser.add_argument("--password", default="admin")
     parser.add_argument("--api-key-name", default="czm-cli")
@@ -47,7 +46,7 @@ def _emit(result: BootstrapResult, *, json_output: bool) -> None:
 
 def handle_setup(ctx, args) -> int:
     result = bootstrap_config(
-        base_url=args.base_url,
+        base_url=getattr(args, "base_url", DEFAULT_BASE_URL) or DEFAULT_BASE_URL,
         username=args.username,
         password=args.password,
         api_key_name=args.api_key_name,

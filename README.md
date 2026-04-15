@@ -34,6 +34,7 @@ What the user has to do:
 - The skill must be available to the OpenClaw or Agent Skills runtime as files on disk, either by checking out this repository where the runtime can read it or by copying/symlinking `skills/czm` into the runtime's configured skill directory.
 - If OpenClaw runs as a different Unix user, that user must also be able to read the skill files.
 - Once the runtime can see the skill, requests about eczema tracking are routed to this skill automatically.
+- For backend setup, `czm setup` accepts an optional `--base-url` when your backend is not on the default local Docker port.
 
 Installer helper:
 
@@ -46,6 +47,17 @@ python3 scripts/install_skill.py --target-dir /path/to/openclaw/skills
 That command copies `skills/czm` into `/path/to/openclaw/skills/czm`. If you prefer a symlink instead of a copy, add `--mode symlink`.
 
 More detail: [docs/skill-install.md](docs/skill-install.md)
+
+Example backend bootstrap with a custom URL:
+
+```bash
+czm setup \
+  --username admin \
+  --password admin \
+  --api-key-name czm-cli \
+  --timezone Europe/Berlin \
+  --base-url http://backend-host:28173
+```
 
 Layout:
 
