@@ -27,6 +27,13 @@ How loading works:
 - If the skill matches, the runtime reads the routing rules in `SKILL.md` and then the referenced files for details.
 - Nothing in `skills/czm` is executed by the CLI itself; it is guidance for an agent that knows how to consume Agent Skills.
 
+What the user has to do:
+
+- Usually nothing inside `czm` itself.
+- The skill must be available to the OpenClaw or Agent Skills runtime as files on disk, either by checking out this repository where the runtime can read it or by copying/symlinking `skills/czm` into the runtime's configured skill directory.
+- If OpenClaw runs as a different Unix user, that user must also be able to read the skill files.
+- Once the runtime can see the skill, requests about eczema tracking are routed to this skill automatically.
+
 Layout:
 
 - [`skills/czm/SKILL.md`](skills/czm/SKILL.md)
