@@ -2,7 +2,7 @@
 
 ## 0. Purpose
 
-This document defines a **deterministic, agent-first CLI interface** for interacting with the Eczema Tracker backend.
+This document defines a **deterministic, agent-first CLI interface** for interacting with the Eczema Tracker backend (https://github.com/adriankae/Eczema-Tracker).
 
 Design goals:
 
@@ -70,7 +70,7 @@ CLI flag > ENV > config file > default
 ### 3.2 Config location (XDG)
 
 ```
-~/.config/eczema-cli/config.toml
+~/.config/czm-cli/config.toml
 ```
 
 ### 3.3 Example config
@@ -84,9 +84,9 @@ timezone = "Europe/Berlin"
 ### 3.4 Environment variables
 
 ```
-ECZEMA_BASE_URL
-ECZEMA_API_KEY
-ECZEMA_TIMEZONE
+CZM_BASE_URL
+CZM_API_KEY
+CZM_TIMEZONE
 ```
 
 ---
@@ -228,7 +228,7 @@ eczema
 ## 9.1 subject create
 
 ```bash
-eczema subject create --name "Child A"
+eczema subject create --name "Person A"
 ```
 
 ### JSON output
@@ -236,7 +236,7 @@ eczema subject create --name "Child A"
 ```json
 {
   "id": "sub_123",
-  "display_name": "Child A",
+  "display_name": "Person A",
   "created_at": "2026-04-15T12:00:00Z"
 }
 ```
@@ -255,7 +255,7 @@ eczema location create --code left_elbow --name "Left Elbow"
 
 ```bash
 eczema episode create \
-  --subject "Child A" \
+  --subject "Person A" \
   --location left_elbow
 ```
 
@@ -265,7 +265,7 @@ eczema episode create \
 
 ```bash
 eczema episode heal \
-  --subject "Child A" \
+  --subject "Person A" \
   --location left_elbow
 ```
 
@@ -275,7 +275,7 @@ eczema episode heal \
 
 ```bash
 eczema episode relapse \
-  --subject "Child A" \
+  --subject "Person A" \
   --location left_elbow
 ```
 
@@ -285,7 +285,7 @@ eczema episode relapse \
 
 ```bash
 eczema application log \
-  --subject "Child A" \
+  --subject "Person A" \
   --location left_elbow \
   --product "Steroid Cream" \
   --amount "thin layer"
@@ -305,7 +305,7 @@ eczema due list
 [
   {
     "episode_id": "ep_123",
-    "subject": "Child A",
+    "subject": "Person A",
     "location": "left_elbow",
     "due_at": "2026-04-15T08:00:00Z"
   }
@@ -424,19 +424,19 @@ eczema due list --json
 
 ```bash
 # subjects
-eczema subject create --name "Child A"
+eczema subject create --name "Person A"
 eczema subject list
 
 # locations
 eczema location create --code left_elbow
 
 # episodes
-eczema episode create --subject "Child A" --location left_elbow
-eczema episode heal --subject "Child A" --location left_elbow
-eczema episode relapse --subject "Child A" --location left_elbow
+eczema episode create --subject "Person A" --location left_elbow
+eczema episode heal --subject "Person A" --location left_elbow
+eczema episode relapse --subject "Person A" --location left_elbow
 
 # applications
-eczema application log --subject "Child A" --location left_elbow --product "Steroid"
+eczema application log --subject "Person A" --location left_elbow --product "Steroid"
 
 # due
 eczema due list --json
