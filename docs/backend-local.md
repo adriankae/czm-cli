@@ -94,3 +94,12 @@ timezone = "Europe/Berlin"
 - The backend uses `X-API-Key` for API key authentication.
 - `czm` does not need the bearer token after the API key is created.
 
+## 8. What to do next
+
+Once you have the plaintext API key, put it into `~/.config/czm/config.toml` and then run:
+
+```bash
+czm subject list
+```
+
+If that works, you are ready to create your first subject, location, and episode.

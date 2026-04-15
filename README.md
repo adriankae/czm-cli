@@ -6,10 +6,10 @@ It talks to the real API over HTTP, uses API-key auth only, and follows the back
 
 ## Quick Start
 
-1. Read the install guide: [docs/install.md](docs/install.md)
-2. Configure the client: [docs/setup.md](docs/setup.md)
-3. Start the backend locally: [docs/backend-local.md](docs/backend-local.md)
-4. Walk through the full CLI flow: [docs/usage.md](docs/usage.md)
+1. Install `czm`: [docs/install.md](docs/install.md)
+2. Follow the full getting-started tutorial: [docs/getting-started.md](docs/getting-started.md)
+3. Review configuration details: [docs/setup.md](docs/setup.md)
+4. See the full command walkthrough: [docs/usage.md](docs/usage.md)
 
 ## Commands
 
@@ -61,4 +61,3 @@ Install editable:
 ```bash
 PIP_INDEX_URL=https://pypi.org/simple python3 -m pip install -e .
 ```
-

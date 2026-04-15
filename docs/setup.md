@@ -6,6 +6,10 @@
 2. Environment variables
 3. Config file
 
+If you are starting from scratch, follow the full tutorial first:
+
+- [docs/getting-started.md](getting-started.md)
+
 ## Config file path
 
 The default config file is:
@@ -46,3 +50,12 @@ timezone = "Europe/Berlin"
 czm --base-url http://localhost:8000 --api-key "$CZM_API_KEY" subject list
 ```
 
+## Practical next step
+
+After you create a config file or export the environment variables, run:
+
+```bash
+czm subject list
+```
+
+That is the easiest command to confirm the API key and base URL are working before you create anything.
