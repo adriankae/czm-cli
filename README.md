@@ -16,9 +16,16 @@ This repository now includes an Agent Skills-compatible skill package at [`skill
 
 Suggested use:
 
-1. Load [skills/czm/SKILL.md](skills/czm/SKILL.md) for the routing rules.
+1. Read [skills/czm/SKILL.md](skills/czm/SKILL.md) first. In an Agent Skills-compatible runtime, this file is the entry point that the agent loader reads to decide when the skill applies and what to do next.
 2. Read the reference files under [`skills/czm/references`](skills/czm/references) for exact workflows, commands, and error handling.
 3. Use `czm setup` first, then `czm due list`, `czm episode get`, `czm episode heal`, `czm episode relapse`, and `czm application log` as needed.
+
+How loading works:
+
+- `SKILL.md` is plain markdown with YAML frontmatter.
+- The agent runtime indexes that file, looks at the `name` and `description`, and matches it to the user request.
+- If the skill matches, the runtime reads the routing rules in `SKILL.md` and then the referenced files for details.
+- Nothing in `skills/czm` is executed by the CLI itself; it is guidance for an agent that knows how to consume Agent Skills.
 
 Layout:
 
