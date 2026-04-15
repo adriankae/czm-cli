@@ -69,8 +69,13 @@ def test_cli_json_output(monkeypatch, capsys):
 
 
 def test_cli_missing_config_exit_code(monkeypatch, capsys):
+    from pathlib import Path
+
     monkeypatch.delenv("CZM_BASE_URL", raising=False)
     monkeypatch.delenv("CZM_API_KEY", raising=False)
+    monkeypatch.setattr(cli_module, "resolve_runtime_config", cli_module.resolve_runtime_config)
+    monkeypatch.setattr("czm_cli.cli.resolve_runtime_config", cli_module.resolve_runtime_config)
+    monkeypatch.setattr("czm_cli.config.xdg_config_path", lambda: Path("/tmp/nonexistent-czm-config.toml"))
     exit_code = cli_module.main(["subject", "list"])
     assert exit_code == EXIT_USAGE
     assert "missing required configuration" in capsys.readouterr().err

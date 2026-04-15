@@ -136,7 +136,13 @@ Add `--json` if you want machine-readable output instead of the human format.
 - `reference '...' is ambiguous`: use a fuller name or the numeric ID
 - `transport_error`: confirm the backend is still running on `http://localhost:8000`
 
-## 9. What the setup command looks like under the hood
+## 9. Read the command reference
+
+When you are ready to explore every command in detail, including descriptions and examples, open:
+
+- [docs/reference.md](reference.md)
+
+## 10. What the setup command looks like under the hood
 
 If you want to understand the manual backend flow, `czm setup` is replacing this sequence:
 

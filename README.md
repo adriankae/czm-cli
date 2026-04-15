@@ -7,7 +7,8 @@ It talks to the real API over HTTP, uses API-key auth only, and follows the back
 ## Quick Start
 
 1. Follow the full getting-started tutorial: [docs/getting-started.md](docs/getting-started.md)
-2. Read the implementation notes below if you want the non-obvious behavior explained.
+2. Read the command reference for the full command-by-command manual: [docs/reference.md](docs/reference.md)
+3. Read the implementation notes below if you want the non-obvious behavior explained.
 
 ## Commands
 
