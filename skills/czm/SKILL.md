@@ -24,6 +24,7 @@ Use this skill when helping a user with eczema episode tracking through the `czm
 
 ## Operating Rules
 
+- Never ask a user for optional fields.
 - Prefer machine-readable output when the CLI supports it.
 - Resolve subjects and locations deterministically before mutating anything.
 - Never guess between ambiguous matches. Ask for clarification.
