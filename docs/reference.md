@@ -2,6 +2,8 @@
 
 This page lists every `czm` command, what it does, and a working example.
 
+Human-readable output shows dates in `DD.MM.YY` format. Phase 1 due items use `AM, DD.MM.YY` or `PM, DD.MM.YY` based on the local display timezone.
+
 All commands use the same configuration rules:
 
 1. CLI flags
@@ -160,7 +162,7 @@ subject_id            1
 location_id           1
 status                active_flare
 current_phase_number  1
-phase_started_at      2026-04-15T14:04:00.335546Z
+phase_started_at      15.04.26
 phase_due_end_at      None
 healed_at             None
 obsolete_at           None
@@ -206,7 +208,7 @@ subject_id            1
 location_id           1
 status                active_flare
 current_phase_number  1
-phase_started_at      2026-04-15T14:04:00.335546Z
+phase_started_at      15.04.26
 phase_due_end_at      None
 healed_at             None
 obsolete_at           None
@@ -232,8 +234,8 @@ Example output:
 ```text
 status                in_taper
 current_phase_number  2
-phase_started_at      2026-04-15T16:00:00Z
-phase_due_end_at      2026-05-13T16:00:00Z
+phase_started_at      15.04.26
+phase_due_end_at      13.05.26
 ```
 
 ## `czm episode relapse`
@@ -257,7 +259,7 @@ Example output:
 ```text
 status                active_flare
 current_phase_number  1
-phase_started_at      2026-04-15T19:00:00Z
+phase_started_at      15.04.26
 ```
 
 ## `czm application log`
@@ -290,13 +292,14 @@ Example output:
 ```text
 id                 1
 episode_id         1
-applied_at         2026-04-15T18:30:00Z
+applied_at         15.04.26
 treatment_type     steroid
 treatment_name     Hydrocortisone 1%
 quantity_text      thin layer
 phase_number_snapshot  2
 is_voided          False
 voided_at          None
+deleted_at         None
 notes              evening dose
 ```
 
@@ -346,7 +349,7 @@ Example output:
 ```text
 id                 1
 is_deleted         True
-deleted_at         2026-04-15T14:05:14.749665Z
+deleted_at         15.04.26
 ```
 
 ## `czm application list`
@@ -368,7 +371,7 @@ Example output:
 
 ```text
 Applications:
-- 1: 2026-04-15 18:30:00+00:00 steroid (phase 2)
+- 1: 15.04.26 steroid (phase 2)
 ```
 
 ## `czm due list`
@@ -389,7 +392,7 @@ Example output:
 
 ```text
 Due items:
-- episode 1: phase 2, due_today=False, next_due=2026-04-17 00:00:00+00:00
+- episode 1: phase 2, due_today=False, next_due=17.04.26
 ```
 
 ## `czm events list`
@@ -411,9 +414,9 @@ Example output:
 
 ```text
 Events:
-- 1: 2026-04-15 14:04:00.335546+00:00 episode_created (agent)
-- 2: 2026-04-15 16:00:00+00:00 healed_marked (agent)
-- 3: 2026-04-15 16:00:00+00:00 phase_entered (agent)
+- 1: 15.04.26 episode_created (agent)
+- 2: 15.04.26 healed_marked (agent)
+- 3: 15.04.26 phase_entered (agent)
 ```
 
 ## `czm events timeline`
@@ -430,9 +433,9 @@ Example output:
 
 ```text
 Events:
-- 1: 2026-04-15 14:04:00.335546+00:00 episode_created (agent)
-- 2: 2026-04-15 16:00:00+00:00 healed_marked (agent)
-- 3: 2026-04-15 16:00:00+00:00 phase_entered (agent)
+- 1: 15.04.26 episode_created (agent)
+- 2: 15.04.26 healed_marked (agent)
+- 3: 15.04.26 phase_entered (agent)
 ```
 
 ## Output modes

@@ -25,13 +25,12 @@ def handle_list(ctx, args) -> int:
     episode_id = require_int(args.episode, "episode")
     params = {"event_type": args.event_type} if args.event_type else None
     payload = ctx.client.get(f"/episodes/{episode_id}/events", params=params)
-    emit(ctx, payload, lambda data: format_event_list(EventListResponse.model_validate(data).events))
+    emit(ctx, payload, lambda data: format_event_list(EventListResponse.model_validate(data).events, ctx.config.timezone))
     return 0
 
 
 def handle_timeline(ctx, args) -> int:
     episode_id = require_int(args.episode, "episode")
     payload = ctx.client.get(f"/episodes/{episode_id}/timeline")
-    emit(ctx, payload, lambda data: format_event_list(TimelineResponse.model_validate(data).timeline))
+    emit(ctx, payload, lambda data: format_event_list(TimelineResponse.model_validate(data).timeline, ctx.config.timezone))
     return 0
-

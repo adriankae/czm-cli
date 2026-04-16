@@ -21,6 +21,5 @@ def handle_list(ctx, args) -> int:
     if args.subject:
         params["subject_id"] = resolve_subject_id(ctx, args.subject)
     payload = ctx.client.get("/episodes/due", params=params or None)
-    emit(ctx, payload, lambda data: format_due_list(DueListResponse.model_validate(data).due))
+    emit(ctx, payload, lambda data: format_due_list(DueListResponse.model_validate(data).due, ctx.config.timezone))
     return 0
-

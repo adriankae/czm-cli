@@ -55,7 +55,7 @@ def handle_log(ctx, args) -> int:
     if args.notes is not None:
         json_payload["notes"] = args.notes
     payload = ctx.client.post("/applications", json=json_payload)
-    emit(ctx, payload, lambda data: format_application(data["application"]))
+    emit(ctx, payload, lambda data: format_application(data["application"], ctx.config.timezone))
     return 0
 
 
@@ -73,20 +73,19 @@ def handle_update(ctx, args) -> int:
     if args.notes is not None:
         json_payload["notes"] = args.notes
     payload = ctx.client.patch(f"/applications/{application_id}", json=json_payload)
-    emit(ctx, payload, lambda data: format_application(data["application"]))
+    emit(ctx, payload, lambda data: format_application(data["application"], ctx.config.timezone))
     return 0
 
 
 def handle_delete(ctx, args) -> int:
     application_id = require_int(args.application, "application")
     payload = ctx.client.delete(f"/applications/{application_id}")
-    emit(ctx, payload, lambda data: format_application(data["application"]))
+    emit(ctx, payload, lambda data: format_application(data["application"], ctx.config.timezone))
     return 0
 
 
 def handle_list(ctx, args) -> int:
     episode_id = require_int(args.episode, "episode")
     payload = ctx.client.get(f"/episodes/{episode_id}/applications", params={"include_voided": str(args.include_voided).lower()})
-    emit(ctx, payload, lambda data: format_application_list(ApplicationListResponse.model_validate(data).applications))
+    emit(ctx, payload, lambda data: format_application_list(ApplicationListResponse.model_validate(data).applications, ctx.config.timezone))
     return 0
-

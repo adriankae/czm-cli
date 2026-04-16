@@ -3,13 +3,19 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
-from .time_utils import utc_isoformat
+from .time_utils import format_display_date, format_due_date, format_optional_display_date, utc_isoformat
 
 
 def _value(item: Any, key: str) -> Any:
     if isinstance(item, dict):
         return item[key]
     return getattr(item, key)
+
+
+def _optional_value(item: Any, key: str) -> Any:
+    if isinstance(item, dict):
+        return item.get(key)
+    return getattr(item, key, None)
 
 
 def _kv_lines(items: list[tuple[str, str]]) -> str:
@@ -54,17 +60,17 @@ def format_location_list(locations: list[dict[str, Any]]) -> str:
     return "\n".join(lines)
 
 
-def format_episode(episode: dict[str, Any]) -> str:
+def format_episode(episode: dict[str, Any], timezone_name: str = "UTC") -> str:
     items = [
         ("id", str(_value(episode, "id"))),
         ("subject_id", str(_value(episode, "subject_id"))),
         ("location_id", str(_value(episode, "location_id"))),
         ("status", str(_value(episode, "status"))),
         ("current_phase_number", str(_value(episode, "current_phase_number"))),
-        ("phase_started_at", str(_value(episode, "phase_started_at"))),
-        ("phase_due_end_at", str(getattr(episode, "phase_due_end_at", None) if not isinstance(episode, dict) else episode.get("phase_due_end_at"))),
-        ("healed_at", str(getattr(episode, "healed_at", None) if not isinstance(episode, dict) else episode.get("healed_at"))),
-        ("obsolete_at", str(getattr(episode, "obsolete_at", None) if not isinstance(episode, dict) else episode.get("obsolete_at"))),
+        ("phase_started_at", format_display_date(_value(episode, "phase_started_at"), timezone_name)),
+        ("phase_due_end_at", format_optional_display_date(_optional_value(episode, "phase_due_end_at"), timezone_name)),
+        ("healed_at", format_optional_display_date(_optional_value(episode, "healed_at"), timezone_name)),
+        ("obsolete_at", format_optional_display_date(_optional_value(episode, "obsolete_at"), timezone_name)),
     ]
     return _kv_lines(items)
 
@@ -80,51 +86,52 @@ def format_episode_list(episodes: list[dict[str, Any]]) -> str:
     return "\n".join(lines)
 
 
-def format_application(application: dict[str, Any]) -> str:
+def format_application(application: dict[str, Any], timezone_name: str = "UTC") -> str:
     items = [
         ("id", str(_value(application, "id"))),
         ("episode_id", str(_value(application, "episode_id"))),
-        ("applied_at", str(_value(application, "applied_at"))),
+        ("applied_at", format_display_date(_value(application, "applied_at"), timezone_name)),
         ("treatment_type", str(_value(application, "treatment_type"))),
-        ("treatment_name", str(getattr(application, "treatment_name", None) if not isinstance(application, dict) else application.get("treatment_name"))),
-        ("quantity_text", str(getattr(application, "quantity_text", None) if not isinstance(application, dict) else application.get("quantity_text"))),
+        ("treatment_name", str(_optional_value(application, "treatment_name"))),
+        ("quantity_text", str(_optional_value(application, "quantity_text"))),
         ("phase_number_snapshot", str(_value(application, "phase_number_snapshot"))),
         ("is_voided", str(_value(application, "is_voided"))),
-        ("voided_at", str(getattr(application, "voided_at", None) if not isinstance(application, dict) else application.get("voided_at"))),
-        ("notes", str(getattr(application, "notes", None) if not isinstance(application, dict) else application.get("notes"))),
+        ("voided_at", format_optional_display_date(_optional_value(application, "voided_at"), timezone_name)),
+        ("deleted_at", format_optional_display_date(_optional_value(application, "deleted_at"), timezone_name)),
+        ("notes", str(_optional_value(application, "notes"))),
     ]
     return _kv_lines(items)
 
 
-def format_application_list(applications: list[dict[str, Any]]) -> str:
+def format_application_list(applications: list[dict[str, Any]], timezone_name: str = "UTC") -> str:
     if not applications:
         return "No applications."
     lines = ["Applications:"]
     for application in applications:
         lines.append(
-            f"- {_value(application, 'id')}: {_value(application, 'applied_at')} {_value(application, 'treatment_type')} (phase {_value(application, 'phase_number_snapshot')})"
+            f"- {_value(application, 'id')}: {format_display_date(_value(application, 'applied_at'), timezone_name)} {_value(application, 'treatment_type')} (phase {_value(application, 'phase_number_snapshot')})"
         )
     return "\n".join(lines)
 
 
-def format_due_list(items: list[dict[str, Any]]) -> str:
+def format_due_list(items: list[dict[str, Any]], timezone_name: str = "UTC") -> str:
     if not items:
         return "No due items."
     lines = ["Due items:"]
     for item in items:
-        next_due = _value(item, "next_due_at") if _value(item, "next_due_at") is not None else "none"
+        next_due = format_due_date(_optional_value(item, "next_due_at"), _value(item, "current_phase_number"), timezone_name)
         lines.append(
             f"- episode {_value(item, 'episode_id')}: phase {_value(item, 'current_phase_number')}, due_today={_value(item, 'treatment_due_today')}, next_due={next_due}"
         )
     return "\n".join(lines)
 
 
-def format_event_list(events: list[dict[str, Any]]) -> str:
+def format_event_list(events: list[dict[str, Any]], timezone_name: str = "UTC") -> str:
     if not events:
         return "No events."
     lines = ["Events:"]
     for event in events:
-        lines.append(f"- {_value(event, 'id')}: {_value(event, 'occurred_at')} {_value(event, 'event_type')} ({_value(event, 'actor_type')})")
+        lines.append(f"- {_value(event, 'id')}: {format_display_date(_value(event, 'occurred_at'), timezone_name)} {_value(event, 'event_type')} ({_value(event, 'actor_type')})")
     return "\n".join(lines)
 
 

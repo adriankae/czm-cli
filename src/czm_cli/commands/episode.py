@@ -46,7 +46,7 @@ def handle_create(ctx, args) -> int:
         "/episodes",
         json={"subject_id": subject_id, "location_id": location_id, "protocol_version": args.protocol_version},
     )
-    emit(ctx, payload, lambda data: format_episode(data["episode"]))
+    emit(ctx, payload, lambda data: format_episode(data["episode"], ctx.config.timezone))
     return 0
 
 
@@ -64,7 +64,7 @@ def handle_list(ctx, args) -> int:
 def handle_get(ctx, args) -> int:
     episode_id = require_int(args.episode, "episode")
     payload = ctx.client.get(f"/episodes/{episode_id}")
-    emit(ctx, payload, lambda data: format_episode(data["episode"]))
+    emit(ctx, payload, lambda data: format_episode(data["episode"], ctx.config.timezone))
     return 0
 
 
@@ -74,7 +74,7 @@ def handle_heal(ctx, args) -> int:
     if args.healed_at:
         json_payload["healed_at"] = parse_local_datetime(args.healed_at, ctx.config.timezone).isoformat().replace("+00:00", "Z")
     payload = ctx.client.post(f"/episodes/{episode_id}/heal", json=json_payload or None)
-    emit(ctx, payload, lambda data: format_episode(data["episode"]))
+    emit(ctx, payload, lambda data: format_episode(data["episode"], ctx.config.timezone))
     return 0
 
 
@@ -84,6 +84,5 @@ def handle_relapse(ctx, args) -> int:
     if args.reported_at:
         json_payload["reported_at"] = parse_local_datetime(args.reported_at, ctx.config.timezone).isoformat().replace("+00:00", "Z")
     payload = ctx.client.post(f"/episodes/{episode_id}/relapse", json=json_payload)
-    emit(ctx, payload, lambda data: format_episode(data["episode"]))
+    emit(ctx, payload, lambda data: format_episode(data["episode"], ctx.config.timezone))
     return 0
-

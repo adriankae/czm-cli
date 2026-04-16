@@ -97,6 +97,7 @@ Layout:
 - Subject resolution is deterministic: exact match, then case-insensitive match, then substring match.
 - Location resolution follows the same rule set, checking both `code` and `display_name`.
 - Naive local timestamps are interpreted in the configured CLI timezone and converted to UTC before being sent to the backend.
+- Human-readable output renders dates in `DD.MM.YY`; phase 1 due items use `AM`/`PM` plus the date.
 - JSON mode prints the backend-shaped payloads directly so the output stays strict and predictable.
 - Exit codes are deterministic:
   - `0` success

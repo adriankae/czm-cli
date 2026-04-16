@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime, timezone
 
 import pytest
 
@@ -88,6 +89,33 @@ def test_cli_conflict_exit_code_json(monkeypatch, capsys):
     exit_code = cli_module.main(["--json", "--base-url", "http://example", "--api-key", "k", "subject", "list"])
     assert exit_code == EXIT_CONFLICT
     assert json.loads(capsys.readouterr().out) == {"error": {"code": "conflict", "message": "conflict happened"}}
+
+
+def test_cli_json_preserves_datetime_payloads(monkeypatch, capsys):
+    fake = FakeClient(
+        {
+            ("GET", "/episodes/1"): {
+                "episode": {
+                    "id": 1,
+                    "subject_id": 1,
+                    "location_id": 1,
+                    "status": "active_flare",
+                    "current_phase_number": 1,
+                    "phase_started_at": datetime(2026, 4, 15, 23, 30, tzinfo=timezone.utc),
+                    "phase_due_end_at": None,
+                    "protocol_version": "v1",
+                    "healed_at": None,
+                    "obsolete_at": None,
+                }
+            }
+        }
+    )
+    monkeypatch.setattr(cli_module, "CzmClient", lambda *args, **kwargs: fake)
+    monkeypatch.setattr(cli_module, "resolve_runtime_config", lambda **kwargs: DummyConfig())
+    exit_code = cli_module.main(["--json", "--base-url", "http://example", "--api-key", "k", "episode", "get", "1"])
+    assert exit_code == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["episode"]["phase_started_at"] == "2026-04-15T23:30:00Z"
 
 
 def test_cli_setup_command(monkeypatch, tmp_path, capsys):
