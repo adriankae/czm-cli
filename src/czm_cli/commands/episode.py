@@ -35,7 +35,10 @@ def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser], pa
     relapse = episode_subparsers.add_parser("relapse", parents=[parent], help="Mark an episode relapsed")
     relapse.add_argument("episode")
     relapse.add_argument("--reported-at")
-    relapse.add_argument("--reason", required=True)
+    relapse.add_argument(
+        "--reason",
+        help='Optional human-readable relapse reason; defaults to the repo-defined transition reason "relapse"',
+    )
     relapse.set_defaults(handler=handle_relapse)
 
 
@@ -80,7 +83,7 @@ def handle_heal(ctx, args) -> int:
 
 def handle_relapse(ctx, args) -> int:
     episode_id = require_int(args.episode, "episode")
-    json_payload = {"reason": args.reason}
+    json_payload = {"reason": args.reason or "relapse"}
     if args.reported_at:
         json_payload["reported_at"] = parse_local_datetime(args.reported_at, ctx.config.timezone).isoformat().replace("+00:00", "Z")
     payload = ctx.client.post(f"/episodes/{episode_id}/relapse", json=json_payload)

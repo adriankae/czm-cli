@@ -191,3 +191,97 @@ def test_cli_setup_rejects_invalid_base_url(monkeypatch, tmp_path, capsys):
     exit_code = cli_module.main(["setup", "--config", str(config_path), "--base-url", "not-a-url"])
     assert exit_code == EXIT_USAGE
     assert "base_url must be an http or https URL" in capsys.readouterr().err
+
+
+def test_episode_relapse_uses_explicit_reason(monkeypatch):
+    fake = FakeClient(
+        {
+            ("POST", "/episodes/1/relapse"): {
+                "episode": {
+                    "id": 1,
+                    "subject_id": 1,
+                    "location_id": 1,
+                    "status": "active_flare",
+                    "current_phase_number": 1,
+                    "phase_started_at": "2026-04-15T18:00:00Z",
+                    "phase_due_end_at": None,
+                    "protocol_version": "v1",
+                    "healed_at": None,
+                    "obsolete_at": None,
+                }
+            }
+        }
+    )
+    monkeypatch.setattr(cli_module, "CzmClient", lambda *args, **kwargs: fake)
+    monkeypatch.setattr(cli_module, "resolve_runtime_config", lambda **kwargs: DummyConfig())
+    exit_code = cli_module.main(
+        [
+            "--json",
+            "--base-url",
+            "http://example",
+            "--api-key",
+            "k",
+            "episode",
+            "relapse",
+            "1",
+            "--reason",
+            "symptoms_returned",
+        ]
+    )
+    assert exit_code == 0
+    assert fake.requests[-1] == (
+        "POST",
+        "/episodes/1/relapse",
+        {"reason": "symptoms_returned"},
+    )
+
+
+def test_episode_relapse_defaults_reason_when_omitted(monkeypatch):
+    fake = FakeClient(
+        {
+            ("POST", "/episodes/1/relapse"): {
+                "episode": {
+                    "id": 1,
+                    "subject_id": 1,
+                    "location_id": 1,
+                    "status": "active_flare",
+                    "current_phase_number": 1,
+                    "phase_started_at": "2026-04-15T18:00:00Z",
+                    "phase_due_end_at": None,
+                    "protocol_version": "v1",
+                    "healed_at": None,
+                    "obsolete_at": None,
+                }
+            }
+        }
+    )
+    monkeypatch.setattr(cli_module, "CzmClient", lambda *args, **kwargs: fake)
+    monkeypatch.setattr(cli_module, "resolve_runtime_config", lambda **kwargs: DummyConfig())
+    exit_code = cli_module.main(
+        [
+            "--json",
+            "--base-url",
+            "http://example",
+            "--api-key",
+            "k",
+            "episode",
+            "relapse",
+            "1",
+            "--reported-at",
+            "2026-04-15T21:00:00",
+        ]
+    )
+    assert exit_code == 0
+    assert fake.requests[-1] == (
+        "POST",
+        "/episodes/1/relapse",
+        {"reason": "relapse", "reported_at": "2026-04-15T21:00:00Z"},
+    )
+
+
+def test_episode_relapse_help_text_marks_reason_optional(capsys):
+    with pytest.raises(SystemExit):
+        cli_module.main(["episode", "relapse", "--help"])
+    out = capsys.readouterr().out
+    assert "--reason" in out
+    assert "Optional human-readable relapse reason" in out

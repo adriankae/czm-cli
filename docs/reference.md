@@ -242,11 +242,17 @@ phase_due_end_at      13.05.26
 
 Reset an episode back to phase 1 after relapse.
 
+Syntax:
+
+```bash
+czm episode relapse <episode> [--reason <text>] [--reported-at <local-timestamp>]
+```
+
 Arguments:
 
 - `episode` episode ID
 - `--reported-at` optional local timestamp in the configured timezone
-- `--reason` human-readable relapse reason
+- `--reason` optional human-readable relapse reason; if omitted, the CLI uses the repo-defined relapse transition reason
 
 Example:
 

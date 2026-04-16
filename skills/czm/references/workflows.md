@@ -72,7 +72,7 @@ Tell the user:
 Commands:
 
 ```bash
-czm episode relapse 1 --reason symptoms_returned
+czm episode relapse 1 [--reason symptoms_returned]
 ```
 
 Tell the user:
@@ -119,4 +119,3 @@ Tell the user:
 - the current phase
 - whether anything is due now
 - what action, if any, the backend indicates
-

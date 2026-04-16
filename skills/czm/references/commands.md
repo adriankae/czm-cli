@@ -69,7 +69,7 @@ czm location list
 
 `czm episode heal <episode> [--healed-at <local-timestamp>]`
 
-`czm episode relapse <episode> --reason <text> [--reported-at <local-timestamp>]`
+`czm episode relapse <episode> [--reason <text>] [--reported-at <local-timestamp>]`
 
 Examples:
 
@@ -121,4 +121,3 @@ czm events list --episode 1
 - The CLI authenticates with `X-API-Key`
 - Configuration precedence is `CLI flag > environment variable > config file`
 - The config file lives at `~/.config/czm/config.toml` or `$XDG_CONFIG_HOME/czm/config.toml`
-

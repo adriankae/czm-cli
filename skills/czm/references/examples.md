@@ -52,7 +52,7 @@ Command plan:
 Command pattern:
 
 ```bash
-czm episode relapse <episode-id> --reason "symptoms_returned"
+czm episode relapse <episode-id> [--reason "symptoms_returned"]
 ```
 
 Expected interpretation:
@@ -100,4 +100,3 @@ Expected interpretation:
 - the application is stored with the configured timezone interpreted as local time
 - the backend converts and stores the timestamp in UTC
 - the agent can then summarize the logged treatment back to the user
-
